@@ -7,7 +7,6 @@
   margin-bottom: 16px;
 }
 
-/* Tech pills */
 .tech-grid {
   display: flex;
   flex-wrap: wrap;
@@ -24,7 +23,6 @@
   margin-bottom: 16px;
 }
 
-/* Tech pills */
 .tech-grid {
   display: flex;
   flex-wrap: wrap;
@@ -44,14 +42,12 @@
   cursor: default;
 }
 
-/* Category colors — bold & juicy */
 .tech-pill.frontend  { background: #ede9fe; color: #7c3aed; border-color: #c4b5fd; }
 .tech-pill.backend   { background: #d1fae5; color: #059669; border-color: #6ee7b7; }
 .tech-pill.devops    { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
 .tech-pill.database  { background: #fce7f3; color: #db2777; border-color: #f9a8d4; }
 .tech-pill.other     { background: #f4f4f5; color: #71717a; border-color: #e4e4e7; }
 
-/* Required badge inside pill */
 .req-badge {
   font-size: 9px;
   font-weight: 700;
@@ -64,7 +60,6 @@
   opacity: 0.9;
 }
 
-/* Priority path */
 .priority-path {
   display: flex;
   align-items: center;
@@ -110,14 +105,12 @@
   cursor: default;
 }
 
-/* Category colors — bold & juicy */
 .tech-pill.frontend  { background: #ede9fe; color: #7c3aed; border-color: #c4b5fd; }
 .tech-pill.backend   { background: #d1fae5; color: #059669; border-color: #6ee7b7; }
 .tech-pill.devops    { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
 .tech-pill.database  { background: #fce7f3; color: #db2777; border-color: #f9a8d4; }
 .tech-pill.other     { background: #f4f4f5; color: #71717a; border-color: #e4e4e7; }
 
-/* Required badge inside pill */
 .req-badge {
   font-size: 9px;
   font-weight: 700;
@@ -130,7 +123,6 @@
   opacity: 0.9;
 }
 
-/* Priority path */
 .priority-path {
   display: flex;
   align-items: center;
