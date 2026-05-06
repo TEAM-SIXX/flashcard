@@ -1,4 +1,3 @@
-/* Filter buttons row */
 .deck-controls {
   display: flex;
   align-items: center;
@@ -36,7 +35,6 @@
   color: white;
 }
 
-/* The card wrapper — handles 3D flip */
 .flashcard-scene {
   perspective: 1200px;
   margin-bottom: 16px;
@@ -55,7 +53,6 @@
   transform: rotateY(180deg);
 }
 
-/* Both faces share this */
 .card-face {
   position: absolute;
   inset: 0;
@@ -68,13 +65,11 @@
   border: 1.5px solid var(--border);
 }
 
-/* Front face — white clean */
 .card-front {
   background: white;
   box-shadow: 0 8px 32px rgba(0,0,0,0.08);
 }
 
-/* Back face — bold gradient */
 .card-back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #7c3aed 0%, #f43f8e 100%);
@@ -89,7 +84,6 @@
   margin-bottom: 24px;
 }
 
-/* Tech tag on card */
 .card-tag {
   font-size: 11px;
   font-weight: 700;
@@ -106,7 +100,6 @@
   color: white;
 }
 
-/* Difficulty badge */
 .card-difficulty {
   font-size: 11px;
   font-weight: 700;
@@ -125,7 +118,6 @@
   color: white;
 }
 
-/* Question text */
 .card-question {
   font-size: 20px;
   font-weight: 700;
@@ -135,7 +127,6 @@
   align-items: center;
 }
 
-/* Answer text */
 .card-answer {
   font-size: 14px;
   line-height: 1.8;
@@ -158,7 +149,6 @@
   color: rgba(255,255,255,0.5);
 }
 
-/* Bookmark button */
 .bookmark-btn {
   background: none;
   border: none;
@@ -173,7 +163,6 @@
 .bookmark-btn:hover { opacity: 0.7; transform: scale(1.2); }
 .bookmark-btn.active { opacity: 1; }
 
-/* Navigation buttons */
 .card-nav {
   display: flex;
   align-items: center;
@@ -217,7 +206,6 @@
   text-align: center;
 }
 
-/* Confidence rating buttons */
 .rating-row {
   display: flex;
   justify-content: center;
