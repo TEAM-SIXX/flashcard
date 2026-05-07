@@ -1,242 +1,102 @@
-.deck-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
+let currentIndex = 0;
+let isFlipped = false;
 
-.deck-filter {
-  display: flex;
-  gap: 6px;
-  background: white;
-  padding: 4px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
+const initDeck = () => {
+    currentIndex = 0;
+    isFlipped = false;
+    window.appState.filteredDeck = window.filterDueCards(window.appState.currentDeck);
+    if (window.appState.filteredDeck.length === 0) {
+        alert("No cards due for review. Come back later or generate new ones.");
+        return;
+    }
+    renderCard();
+    setupControls();
+};
 
-.filter-btn {
-  background: none;
-  border: none;
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 14px;
-  border-radius: 9px;
-  cursor: pointer;
-  color: var(--muted);
-  transition: all 0.2s;
-  text-transform: capitalize;
-}
+const renderCard = () => {
+    const deck = window.appState.filteredDeck;
+    if (currentIndex >= deck.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = deck.length - 1;
+    const card = deck[currentIndex];
+    document.getElementById('card-front-text').innerText = card.front;
+    document.getElementById('card-back-text').innerText = card.back;
+    document.getElementById('card-counter').innerText = 'Card ' + (currentIndex + 1) + ' of ' + deck.length;
+    document.getElementById('card-tech-badge').innerText = card.tech;
+    document.getElementById('card-diff-badge').innerText = card.difficulty;
+    isFlipped = false;
+    document.getElementById('flip-card').classList.remove('flipped');
+    const bookmarks = window.getLocalStorageData('bookmarks');
+    document.getElementById('bookmark-btn').innerText = bookmarks[card.id] ? '\u2605' : '\u2606';
+};
 
-.filter-btn.active {
-  background: linear-gradient(135deg, var(--purple), var(--pink));
-  color: white;
-}
+const setupControls = () => {
+    document.getElementById('flip-card').onclick = () => {
+        isFlipped = !isFlipped;
+        document.getElementById('flip-card').classList.toggle('flipped');
+    };
+    document.getElementById('next-btn').onclick = () => { currentIndex++; renderCard(); };
+    document.getElementById('prev-btn').onclick = () => { currentIndex--; renderCard(); };
+    document.querySelectorAll('.rate-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const rating = parseInt(e.target.dataset.rating);
+            const card = window.appState.filteredDeck[currentIndex];
+            let srsData = window.getLocalStorageData('srs_data');
+            const defaultSRS = { easeFactor: 2.5, interval: 0, repetitions: 0, nextReview: Date.now() };
+            srsData[card.id] = window.updateSRS(srsData[card.id] || defaultSRS, rating);
+            window.setLocalStorageData('srs_data', srsData);
+            currentIndex++;
+            renderCard();
+        };
+    });
+    document.getElementById('bookmark-btn').onclick = () => {
+        const card = window.appState.filteredDeck[currentIndex];
+        let bookmarks = window.getLocalStorageData('bookmarks');
+        bookmarks[card.id] = !bookmarks[card.id];
+        window.setLocalStorageData('bookmarks', bookmarks);
+        document.getElementById('bookmark-btn').innerText = bookmarks[card.id] ? '\u2605' : '\u2606';
+    };
+    document.getElementById('search-cards').oninput = applyFilters;
+    document.getElementById('filter-difficulty').onchange = applyFilters;
+    document.getElementById('ai-gen-btn').onclick = async () => {
+        const card = window.appState.filteredDeck[currentIndex];
+        const existingIds = window.appState.currentDeck.map(c => c.id);
+        const btn = document.getElementById('ai-gen-btn');
+        btn.innerText = 'Generating...';
+        btn.disabled = true;
+        try {
+            const data = await window.generateMoreCards(card.tech, existingIds);
+            if (data.success) { window.appState.currentDeck.push(...data.cards); applyFilters(); }
+        } catch (e) { alert("Failed: " + e.message); }
+        finally { btn.innerText = '\u2728 Generate AI Cards for this Tech'; btn.disabled = false; }
+    };
+    document.getElementById('export-btn').onclick = () => {
+        const blob = new Blob([JSON.stringify(window.appState.currentDeck, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'study_deck.json'; a.click();
+        URL.revokeObjectURL(url);
+    };
+};
 
-.flashcard-scene {
-  perspective: 1200px;
-  margin-bottom: 16px;
-}
+const applyFilters = () => {
+    const search = document.getElementById('search-cards').value.toLowerCase();
+    const diff = document.getElementById('filter-difficulty').value;
+    window.appState.filteredDeck = window.appState.currentDeck.filter(c => {
+        const matchText = c.front.toLowerCase().includes(search) || c.tech.toLowerCase().includes(search);
+        const matchDiff = diff === 'all' || c.difficulty === diff;
+        return matchText && matchDiff;
+    });
+    currentIndex = 0;
+    renderCard();
+};
 
-.flashcard {
-  position: relative;
-  width: 100%;
-  min-height: 260px;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
+document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('view-study').classList.contains('active')) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === ' ') { e.preventDefault(); document.getElementById('flip-card').click(); }
+    if (e.key === 'ArrowRight') document.getElementById('next-btn').click();
+    if (e.key === 'ArrowLeft') document.getElementById('prev-btn').click();
+    if (e.key === 'b' || e.key === 'B') document.getElementById('bookmark-btn').click();
+    if (e.key >= '1' && e.key <= '5') { const btn = document.querySelector('.rate-btn[data-rating="' + e.key + '"]'); if (btn) btn.click(); }
+});
 
-.flashcard.flipped {
-  transform: rotateY(180deg);
-}
-
-.card-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: var(--radius);
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  border: 1.5px solid var(--border);
-}
-
-.card-front {
-  background: white;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-}
-
-.card-back {
-  transform: rotateY(180deg);
-  background: linear-gradient(135deg, #7c3aed 0%, #f43f8e 100%);
-  border-color: transparent;
-  color: white;
-}
-
-.card-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.card-tag {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--purple);
-}
-
-.card-back .card-tag {
-  background: rgba(255,255,255,0.2);
-  color: white;
-}
-
-.card-difficulty {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.card-difficulty.beginner     { background: #d1fae5; color: #059669; }
-.card-difficulty.intermediate { background: #fef3c7; color: #d97706; }
-.card-difficulty.advanced     { background: #fce7f3; color: #db2777; }
-
-.card-back .card-difficulty {
-  background: rgba(255,255,255,0.2);
-  color: white;
-}
-
-.card-question {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.5;
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.card-answer {
-  font-size: 14px;
-  line-height: 1.8;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  color: rgba(255,255,255,0.92);
-}
-
-.card-hint {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 16px;
-}
-
-.card-back .card-hint {
-  color: rgba(255,255,255,0.5);
-}
-
-.bookmark-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  opacity: 0.3;
-  transition: opacity 0.15s, transform 0.15s;
-  padding: 0;
-  line-height: 1;
-}
-
-.bookmark-btn:hover { opacity: 0.7; transform: scale(1.2); }
-.bookmark-btn.active { opacity: 1; }
-
-.card-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.nav-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  background: white;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.nav-btn:hover:not(:disabled) {
-  background: var(--purple);
-  border-color: var(--purple);
-  color: white;
-  transform: scale(1.05);
-}
-
-.nav-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.card-counter {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  min-width: 60px;
-  text-align: center;
-}
-
-.rating-row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.rate-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border);
-  background: white;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.rate-btn:hover {
-  border-color: var(--purple);
-  color: var(--purple);
-  transform: translateY(-2px);
-}
-
-.rate-btn.selected {
-  background: linear-gradient(135deg, var(--purple), var(--pink));
-  border-color: transparent;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124,58,237,0.3);
-}
+window.initDeck = initDeck;
