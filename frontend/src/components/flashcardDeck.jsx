@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   updateSRS,
   getLocalStorageData,
   setLocalStorageData,
 } from "../utils/helpers";
+
+import { generateAICards } from "../api/api";
 
 export default function FlashcardDeck({ deck = [] }) {
   // -----------------------------
@@ -17,18 +19,10 @@ export default function FlashcardDeck({ deck = [] }) {
   const currentCard = filteredDeck[currentIndex];
 
   // -----------------------------
-  // INIT DECK (FIXED)
+  // INIT DECK
   // -----------------------------
   useEffect(() => {
     if (!Array.isArray(deck)) return;
-
-    if (deck.length === 0) {
-      setMasterDeck([]);
-      setFilteredDeck([]);
-      setCurrentIndex(0);
-      setIsFlipped(false);
-      return;
-    }
 
     setMasterDeck(deck);
     setFilteredDeck(deck);
@@ -59,6 +53,7 @@ export default function FlashcardDeck({ deck = [] }) {
 
   const prevCard = () => {
     if (!filteredDeck.length) return;
+
     setCurrentIndex((i) =>
       i - 1 < 0 ? filteredDeck.length - 1 : i - 1
     );
@@ -94,13 +89,14 @@ export default function FlashcardDeck({ deck = [] }) {
     if (!currentCard) return;
 
     const bookmarks = getLocalStorageData("bookmarks");
+
     bookmarks[currentCard.id] = !bookmarks[currentCard.id];
 
     setLocalStorageData("bookmarks", bookmarks);
   };
 
   // -----------------------------
-  // FILTER (FIXED SAFE VERSION)
+  // FILTER (SAFE)
   // -----------------------------
   const applyFilters = (search = "", diff = "all") => {
     const base = masterDeck.length ? masterDeck : deck;
@@ -122,6 +118,35 @@ export default function FlashcardDeck({ deck = [] }) {
   };
 
   // -----------------------------
+  // AI GENERATION
+  // -----------------------------
+  const handleGenerateMore = async () => {
+    if (!currentCard) return;
+
+    try {
+      const aiCards = await generateAICards(currentCard.tech);
+
+      if (!Array.isArray(aiCards)) return;
+
+      const formatted = aiCards.map((c, i) => ({
+        id: `${currentCard.tech}_${Date.now()}_${i}`,
+        tech: currentCard.tech,
+        front: c.front,
+        back: c.back,
+        difficulty: c.difficulty || "Intermediate",
+      }));
+
+      const merged = [...masterDeck, ...formatted];
+
+      setMasterDeck(merged);
+      setFilteredDeck(merged);
+      setCurrentIndex(0);
+    } catch (err) {
+      console.error("AI generation failed:", err);
+    }
+  };
+
+  // -----------------------------
   // EXPORT
   // -----------------------------
   const exportDeck = () => {
@@ -139,7 +164,7 @@ export default function FlashcardDeck({ deck = [] }) {
   };
 
   // -----------------------------
-  // LOADING GUARD (FIXED)
+  // EMPTY STATE
   // -----------------------------
   if (!filteredDeck.length) {
     return (
@@ -158,6 +183,7 @@ export default function FlashcardDeck({ deck = [] }) {
   return (
     <div className="flashcard-deck">
 
+      {/* TOP INFO */}
       <div className="card-stats">
         <span>
           Card {currentIndex + 1} of {filteredDeck.length}
@@ -194,6 +220,10 @@ export default function FlashcardDeck({ deck = [] }) {
             {n}
           </button>
         ))}
+
+        <button onClick={handleGenerateMore}>
+          ✨ Generate AI Cards
+        </button>
       </div>
 
       {/* NAV */}
@@ -202,6 +232,7 @@ export default function FlashcardDeck({ deck = [] }) {
         <button onClick={nextCard}>Next →</button>
       </div>
 
+      {/* EXPORT */}
       <button className="export-btn" onClick={exportDeck}>
         Export Deck
       </button>
