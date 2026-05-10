@@ -15,6 +15,7 @@ export default function FlashcardDeck({ deck = [] }) {
   const [filteredDeck, setFilteredDeck] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const currentCard = filteredDeck[currentIndex];
 
@@ -121,7 +122,9 @@ export default function FlashcardDeck({ deck = [] }) {
   // AI GENERATION
   // -----------------------------
   const handleGenerateMore = async () => {
-    if (!currentCard) return;
+    if (!currentCard || generating) return;
+
+    setGenerating(true);
 
     try {
       const aiCards = await generateAICards(currentCard.tech);
@@ -141,8 +144,11 @@ export default function FlashcardDeck({ deck = [] }) {
       setMasterDeck(merged);
       setFilteredDeck(merged);
       setCurrentIndex(0);
+
     } catch (err) {
       console.error("AI generation failed:", err);
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -221,8 +227,13 @@ export default function FlashcardDeck({ deck = [] }) {
           </button>
         ))}
 
-        <button onClick={handleGenerateMore}>
-          ✨ Generate AI Cards
+        <button
+          onClick={handleGenerateMore}
+          disabled={generating}
+        >
+          {generating
+            ? "Generating..."
+            : "✨ Generate AI Cards"}
         </button>
       </div>
 
