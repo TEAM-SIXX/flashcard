@@ -1,18 +1,54 @@
-# React + Vite
+# Job Description Flashcards
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React application that turns job descriptions into study flashcards.
 
-Currently, two official plugins are available:
+Users can paste a job description, extract technologies, and generate AI-powered flashcards for interview preparation and learning.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+* AI-generated flashcards
+* Flashcard study mode
+* Spaced repetition scoring
+* Bookmarking cards
+* Export decks as JSON
+* Loading indicators during generation
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Tech Stack
 
-Note: This will impact Vite dev & build performances.
+* React
+* Vite
+* OpenRouter API
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Clone the repository:
+
+```bash id="dbw2lf"
+git clone https://github.com/MarkWainainaWagacha/flashcard.git
+```
+
+Move into the frontend folder:
+
+```bash id="apet7s"
+cd frontend
+```
+
+Install dependencies:
+
+```bash id="g7wwzs"
+npm install
+```
+
+Create a `.env` file in the frontend directory:
+
+```env id="t8e8p7"
+VITE_OPENROUTER_KEY=your_api_key
+```
+
+Start the development server:
+
+```bash id="jlwmfq"
+npm run dev
+```
+
+Open the local Vite URL shown in the terminal.
