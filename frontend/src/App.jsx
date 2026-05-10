@@ -9,20 +9,32 @@ export default function App() {
   const [tech, setTech] = useState([]);
   const [view, setView] = useState("input");
   const [loading, setLoading] = useState(false);
+  const [usedFallback, setUsedFallback] = useState(false);
 
-
+  // -----------------------------
+  // MAIN PIPELINE
+  // -----------------------------
   const handleResult = async (data) => {
     const techList = data.tech || [];
 
     setTech(techList);
     setLoading(true);
+    setUsedFallback(false);
 
     try {
+      let fallbackUsed = false;
+
       const allCards = await Promise.all(
         techList.map(async (t) => {
-          const res = await generateAICards(t);
+          const result = await generateAICards(t);
 
-          return (res || []).map((c, i) => ({
+          if (result.fallback) {
+            fallbackUsed = true;
+          }
+
+          const cards = result.cards || [];
+
+          return cards.map((c, i) => ({
             id: `${t}_${Date.now()}_${i}`,
             tech: t,
             front: c.front,
@@ -31,6 +43,8 @@ export default function App() {
           }));
         })
       );
+
+      setUsedFallback(fallbackUsed);
 
       const flatDeck = allCards.flat();
 
@@ -51,6 +65,7 @@ export default function App() {
 
       <main className="main-view">
 
+        {/* LOADING STATE */}
         {loading && (
           <div className="loading-screen">
             <h2>Generating AI Flashcards...</h2>
@@ -58,14 +73,20 @@ export default function App() {
           </div>
         )}
 
+        {/* INPUT */}
         {!loading && view === "input" && (
           <JDInput onResult={handleResult} />
         )}
 
+        {/* STUDY */}
         {!loading && view === "study" && (
-          <FlashcardDeck deck={deck} />
+          <FlashcardDeck
+            deck={deck}
+            usedFallback={usedFallback}
+          />
         )}
 
+        {/* STATS */}
         {!loading && view === "stats" && (
           <Stats tech={tech} />
         )}
@@ -75,7 +96,10 @@ export default function App() {
   );
 }
 
-function Sidebar({ setView }) {
+// -----------------------------
+// SIDEBAR
+// -----------------------------
+function Sidebar({ view, setView }) {
   return (
     <div className="sidebar">
       <h2>Job Flashcards</h2>

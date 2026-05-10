@@ -1,10 +1,9 @@
+console.log("FILE LOADED");
 import { useState } from "react";
 
 export default function JDInput({ onResult }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  console.log("onResult type:", typeof onResult);
 
   const handleSubmit = () => {
     if (!input.trim()) return;

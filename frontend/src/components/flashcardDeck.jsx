@@ -1,4 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+console.log("FILE LOADED");
+
+import { useEffect, useState } from "react";
 import {
   updateSRS,
   getLocalStorageData,
@@ -7,7 +9,10 @@ import {
 
 import { generateAICards } from "../api/api";
 
-export default function FlashcardDeck({ deck = [] }) {
+export default function FlashcardDeck({ deck = [], usedFallback }) {
+  console.log("COMPONENT RENDERED");
+  console.log("usedFallback:", usedFallback);
+
   // -----------------------------
   // STATE
   // -----------------------------
@@ -54,7 +59,6 @@ export default function FlashcardDeck({ deck = [] }) {
 
   const prevCard = () => {
     if (!filteredDeck.length) return;
-
     setCurrentIndex((i) =>
       i - 1 < 0 ? filteredDeck.length - 1 : i - 1
     );
@@ -78,6 +82,7 @@ export default function FlashcardDeck({ deck = [] }) {
     const current = srsData[currentCard.id] || defaultSRS;
 
     srsData[currentCard.id] = updateSRS(current, rating);
+
     setLocalStorageData("srs_data", srsData);
 
     nextCard();
@@ -97,7 +102,7 @@ export default function FlashcardDeck({ deck = [] }) {
   };
 
   // -----------------------------
-  // FILTER (SAFE)
+  // FILTER
   // -----------------------------
   const applyFilters = (search = "", diff = "all") => {
     const base = masterDeck.length ? masterDeck : deck;
@@ -127,7 +132,9 @@ export default function FlashcardDeck({ deck = [] }) {
     setGenerating(true);
 
     try {
-      const aiCards = await generateAICards(currentCard.tech);
+      const result = await generateAICards(currentCard.tech);
+
+      const aiCards = result.cards;
 
       if (!Array.isArray(aiCards)) return;
 
@@ -162,8 +169,8 @@ export default function FlashcardDeck({ deck = [] }) {
     );
 
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
 
+    const a = document.createElement("a");
     a.href = url;
     a.download = "study_deck.json";
     a.click();
@@ -199,6 +206,13 @@ export default function FlashcardDeck({ deck = [] }) {
         <span className="badge">{currentCard.difficulty}</span>
       </div>
 
+      {/* FALLBACK WARNING */}
+      {usedFallback && (
+        <div className="fallback-warning">
+          AI generation unavailable — using local flashcards.
+        </div>
+      )}
+
       {/* STACK */}
       <div className="deck-stage">
         <div className="card-stack level-2" />
@@ -227,13 +241,8 @@ export default function FlashcardDeck({ deck = [] }) {
           </button>
         ))}
 
-        <button
-          onClick={handleGenerateMore}
-          disabled={generating}
-        >
-          {generating
-            ? "Generating..."
-            : "✨ Generate AI Cards"}
+        <button onClick={handleGenerateMore} disabled={generating}>
+          {generating ? "Generating..." : "✨ Generate AI Cards"}
         </button>
       </div>
 

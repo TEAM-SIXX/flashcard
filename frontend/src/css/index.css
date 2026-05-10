@@ -387,3 +387,12 @@ button:hover {
 .muted {
   opacity: 0.6;
 }
+
+.fallback-warning {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
