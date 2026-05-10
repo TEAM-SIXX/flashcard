@@ -13,7 +13,6 @@ export const generateAICards = async (tech) => {
   isGenerating = true;
 
   try {
-    throw new Error("Testing fallback");
     const res = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
