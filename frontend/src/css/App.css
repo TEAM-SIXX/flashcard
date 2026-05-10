@@ -77,3 +77,11 @@ header {
   justify-content: space-between;
 }
 
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+  gap: 10px;
+}

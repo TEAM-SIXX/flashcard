@@ -2,33 +2,47 @@ import { useState } from "react";
 import FlashcardDeck from "./components/FlashcardDeck.jsx";
 import JDInput from "./components/jdInput.jsx";
 import Stats from "./components/studyStats.jsx";
-import { generateDeck } from "./api/api";
+import { generateAICards } from "./api/api";
 
 export default function App() {
   const [deck, setDeck] = useState([]);
   const [tech, setTech] = useState([]);
   const [view, setView] = useState("input");
+  const [loading, setLoading] = useState(false);
 
-  const handleResult = (data) => {
+
+  const handleResult = async (data) => {
     const techList = data.tech || [];
 
     setTech(techList);
+    setLoading(true);
 
-    // 🔥 USE YOUR LOCAL DB GENERATOR
-    const res = generateDeck(techList);
+    try {
+      const allCards = await Promise.all(
+        techList.map(async (t) => {
+          const res = await generateAICards(t);
 
-    const generatedDeck = res.cards.map((q) => ({
-      id: q.id,
-      tech: q.tech,
-      difficulty: q.difficulty || "Beginner",
-      front: q.question,
-      back: q.answer,
-    }));
+          return (res || []).map((c, i) => ({
+            id: `${t}_${Date.now()}_${i}`,
+            tech: t,
+            front: c.front,
+            back: c.back,
+            difficulty: c.difficulty || "Beginner",
+          }));
+        })
+      );
 
-    setDeck(generatedDeck);
+      const flatDeck = allCards.flat();
 
-    // auto switch to study
-    setView("study");
+      setDeck(flatDeck);
+      setView("study");
+
+    } catch (err) {
+      console.error("Deck generation failed:", err);
+      setDeck([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,42 +50,45 @@ export default function App() {
       <Sidebar view={view} setView={setView} />
 
       <main className="main-view">
-        {view === "input" && <JDInput onResult={handleResult} />}
 
-        {view === "study" && <FlashcardDeck deck={deck} />}
+        {loading && (
+          <div className="loading-screen">
+            <h2>Generating AI Flashcards...</h2>
+            <p>This can take a few seconds.</p>
+          </div>
+        )}
 
-        {view === "stats" && <Stats tech={tech} />}
+        {!loading && view === "input" && (
+          <JDInput onResult={handleResult} />
+        )}
+
+        {!loading && view === "study" && (
+          <FlashcardDeck deck={deck} />
+        )}
+
+        {!loading && view === "stats" && (
+          <Stats tech={tech} />
+        )}
+
       </main>
     </div>
   );
 }
 
-/* ---------------------------
-   SIDEBAR
---------------------------- */
-function Sidebar({ view, setView }) {
+function Sidebar({ setView }) {
   return (
     <div className="sidebar">
-      <h2> Job Description Flashcards</h2>
+      <h2>Job Flashcards</h2>
 
-      <button
-        className={view === "input" ? "active" : ""}
-        onClick={() => setView("input")}
-      >
-        Generate cards
+      <button onClick={() => setView("input")}>
+        Generate
       </button>
 
-      <button
-        className={view === "study" ? "active" : ""}
-        onClick={() => setView("study")}
-      >
+      <button onClick={() => setView("study")}>
         Study
       </button>
 
-      <button
-        className={view === "stats" ? "active" : ""}
-        onClick={() => setView("stats")}
-      >
+      <button onClick={() => setView("stats")}>
         Stats
       </button>
     </div>
