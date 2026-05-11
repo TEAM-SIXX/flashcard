@@ -9,7 +9,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
 
   const generateFromText = async () => {
-    if (!jobText) return
+    if (!jobText) return 
 
     setLoading(true)
 
