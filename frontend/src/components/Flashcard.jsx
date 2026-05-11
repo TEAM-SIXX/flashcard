@@ -19,4 +19,4 @@ export default function Flashcard({ card }) {
       </div>
     </div>
   )
-}
+} 
