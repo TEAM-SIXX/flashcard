@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { styles } from "../styles";
 
 export default function Stats({ tech = [] }) {
   const data = useMemo(() => {
@@ -20,56 +21,113 @@ export default function Stats({ tech = [] }) {
   }, [tech]);
 
   return (
-    <div className="stats-shell">
+    <div style={styles.statsShell}>
 
-      <div className="stats-header">
-        <h2> Study Dashboard</h2>
-        <p>Overview of your learning progress</p>
+      {/* HEADER */}
+      <div style={styles.statsHeader}>
+        <h2 style={styles.statsHeaderTitle}>
+          Study Dashboard
+        </h2>
+
+        <p style={styles.statsHeaderSub}>
+          Overview of your learning progress
+        </p>
       </div>
 
-      <div className="stats-hero">
-        <div className="hero-number">{data.total}</div>
-        <div className="hero-label">Total Concepts Extracted</div>
+      {/* HERO */}
+      <div style={styles.statsHero}>
+        <div style={styles.statsHeroNumber}>
+          {data.total}
+        </div>
+
+        <div style={styles.statsHeroLabel}>
+          Total Concepts Extracted
+        </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="mini-card">
-          <div className="mini-title">Unique Skills</div>
-          <div className="mini-value">{data.unique}</div>
-        </div>
+      {/* GRID */}
+      <div style={styles.statsGrid}>
 
-        <div className="mini-card highlight">
-          <div className="mini-title">Top Skill</div>
-          <div className="mini-value">{data.top}</div>
-        </div>
+        <div style={styles.statsMiniCard}>
+          <div style={styles.statsMiniTitle}>
+            Unique Skills
+          </div>
 
-        <div className="mini-card">
-          <div className="mini-title">Depth</div>
-          <div className="mini-value">
-            {data.total > 10 ? "High" : data.total > 5 ? "Medium" : "Low"}
+          <div style={styles.statsMiniValue}>
+            {data.unique}
           </div>
         </div>
+
+        <div
+          style={{
+            ...styles.statsMiniCard,
+            ...styles.statsMiniCardHighlight,
+          }}
+        >
+          <div style={styles.statsMiniTitle}>
+            Top Skill
+          </div>
+
+          <div style={styles.statsMiniValue}>
+            {data.top}
+          </div>
+        </div>
+
+        <div style={styles.statsMiniCard}>
+          <div style={styles.statsMiniTitle}>
+            Depth
+          </div>
+
+          <div style={styles.statsMiniValue}>
+            {data.total > 10
+              ? "High"
+              : data.total > 5
+              ? "Medium"
+              : "Low"}
+          </div>
+        </div>
+
       </div>
 
-      <div className="stats-breakdown">
-        <h3>Skill Frequency</h3>
+      {/* BREAKDOWN */}
+      <div style={styles.statsBreakdown}>
+
+        <h3 style={styles.statsBreakdownTitle}>
+          Skill Frequency
+        </h3>
 
         {data.sorted.length === 0 ? (
-          <p className="muted">No data yet</p>
+          <p style={styles.statsMuted}>
+            No data yet
+          </p>
         ) : (
           data.sorted.map(([key, value]) => (
-            <div key={key} className="bar-row">
-              <span>{key}</span>
-              <div className="bar">
+            <div
+              key={key}
+              style={styles.statsBarRow}
+            >
+
+              <span style={styles.statsBarLabel}>
+                {key}
+              </span>
+
+              <div style={styles.statsBar}>
                 <div
-                  className="bar-fill"
-                  style={{ width: `${Math.min(value * 20, 100)}%` }}
+                  style={{
+                    ...styles.statsBarFill,
+                    width: `${Math.min(value * 20, 100)}%`,
+                  }}
                 />
               </div>
-              <span className="count">{value}</span>
+
+              <span style={styles.statsCount}>
+                {value}
+              </span>
+
             </div>
           ))
         )}
+
       </div>
 
     </div>

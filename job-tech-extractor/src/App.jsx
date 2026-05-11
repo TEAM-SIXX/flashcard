@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { MASTER_QA_DB, ALL_TECHS } from "./data/database";
 import StudyTimer from "./components/StudyTimer";
 import Flashcard from "./components/Flashcard";
+import Stats from "./components/studyStats"
 import { styles } from "./styles";
 
 const GROQ_API_KEY = "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";
@@ -107,7 +108,7 @@ ${text.slice(0, 3000)}`
 
       const localTechs = extractTechsLocal(text);
       const allTechs = [...new Set([...aiCards.map(c => c.tech), ...localTechs])];
-      setFoundTechs(allTechs);
+      setFoundTechs(prev => [...prev, ...allTechs]);
       const cards = buildDeck(localTechs, aiCards);
       setDeck(cards);
       setDeckIndex(0);
@@ -116,7 +117,7 @@ ${text.slice(0, 3000)}`
       // Fallback to local extraction if Groq fails
       setStatus("AI unavailable, using local extraction...");
       const techs = extractTechsLocal(text);
-      setFoundTechs(techs);
+      setFoundTechs(prev => [...prev, ...techs]);
       const cards = buildDeck(techs);
       setDeck(cards);
       setDeckIndex(0);
@@ -172,7 +173,7 @@ ${text.slice(0, 3000)}`
       </header>
 
       <nav style={styles.tabNav}>
-        {[["extract","⚡ EXTRACT"],["browse","◈ BROWSE DB"],["study",`▶ STUDY${deck.length ? ` (${deck.length})` : ""}`]].map(([id, label]) => (
+        {[["extract","⚡ EXTRACT"],["browse","◈ BROWSE DB"],["study",`▶ STUDY${deck.length ? ` (${deck.length})` : ""}`], ["stats", "STATS"]].map(([id, label]) => (
           <button key={id} style={{ ...styles.tab, ...(tab === id ? styles.tabActive : {}) }} onClick={() => setTab(id)}>{label}</button>
         ))}
       </nav>
@@ -248,6 +249,10 @@ ${text.slice(0, 3000)}`
             )}
           </div>
         )}
+
+        {tab === "stats" && (
+          <Stats tech={foundTechs} />
+          )}
       </main>
     </div>
   );
